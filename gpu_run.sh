@@ -53,10 +53,15 @@ echo_and_run() {
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # todo: check other python versions
+conda init bash
+conda activate /cluster/tufts/hpc/tools/anaconda/202105/envs/pytorch_cuda11.7
 PYTHON=/cluster/tufts/hugheslab/nwynru01/condaenv/multiview/bin/python
+# PYTHON=/cluster/tufts/hugheslab/nwynru01/condaenv/multiview/bin/python
 
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                Input Mapping                                #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+python cuda_check.py
