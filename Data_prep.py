@@ -72,7 +72,7 @@ for w in range(np.size(labels, 0)):
          img = cv2.imread(img_folder_sensitive+'/'+img_file)
 #         img_edgeA = cv2.imread(edge_folder_sensitive_A+'/Canny '+img_file,cv2.IMREAD_GRAYSCALE)
 #         img_edgeB = cv2.imread(edge_folder_sensitive_B+'/Canny '+img_file,cv2.IMREAD_GRAYSCALE)
- #        img_fourier = cv2.imread(fourier_folder_sensitive+'/Fourier '+img_file,cv2.IMREAD_GRAYSCALE)
+#        img_fourier = cv2.imread(fourier_folder_sensitive+'/Fourier '+img_file,cv2.IMREAD_GRAYSCALE)
          img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
          Y[i] = 0
     else:
@@ -238,14 +238,26 @@ fname_split = ['train']*len(fnames_tr)+['test']*len(fnames_ts)
 df=pd.DataFrame({'well':fnames_tr+fnames_ts,
                'split':fname_split})
 
-#sav
-df.to_csv('gen/training_test_splits.csv',index=False)
+#save training and testing splits
+#df.to_csv('gen/training_test_splits.csv',index=False)
 
-np.save('gen/X_tr.npy',X_tr)
+#comment below to not saving the images on the github
+# np.save('gen/X_tr.npy',X_tr)
+# #np.save('X_val.npy',X_val)
+# np.save('gen/X_ts.npy',X_ts)
+
+# np.save('gen/Y_tr.npy',Y_tr)
+# #np.save('Y_val.npy',Y_val)
+# np.save('gen/Y_ts.npy',Y_ts)
+
+#save the training and testing splits to box folder
+df.to_csv('../disc_research_images/gen/training_test_splits.csv',index=False)
+#save the training and testing file to box folder
+
+np.save('../disc_research_images/gen/X_tr.npy',X_tr)
 #np.save('X_val.npy',X_val)
-np.save('gen/X_ts.npy',X_ts)
+np.save('../disc_research_images/gen/X_ts.npy',X_ts)
 
-np.save('gen/Y_tr.npy',Y_tr)
+np.save('../disc_research_images/gen/Y_tr.npy',Y_tr)
 #np.save('Y_val.npy',Y_val)
-np.save('gen/Y_ts.npy',Y_ts)
-
+np.save('../disc_research_images/gen/Y_ts.npy',Y_ts)
