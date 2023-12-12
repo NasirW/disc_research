@@ -16,8 +16,8 @@ import csv
 
 
 #%% Data_prep.py loads the image files and exports the appropriate data structures for training
-img_folder_sensitive = './data/chemo_res/Sensitive' #Folder that contains the sensitive biopsied RGB images
-img_folder_resistant = './data/chemo_res/Resistant' #Folder that contains the resistant biopsied RGB images
+img_folder_sensitive = './../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Biopsied Lesions/Sensitive' #Folder that contains the sensitive biopsied RGB images
+img_folder_resistant = './../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Biopsied Lesions/Resistant' #Folder that contains the resistant biopsied RGB images
 #edge_folder_sensitive_A ='./../../Images_Biopsied/Sensitive_Canny_0.4'
 #edge_folder_resistant_A ='./../../Images_Biopsied/Resistant_Canny_0.4'
 #Path to .csv with the labels (0 = sensitive, 1 = resistant)
@@ -52,14 +52,14 @@ import PIL.Image
 import cv2
 import matplotlib.pyplot as plt
 
-import albumentations as A
+# import albumentations as A
     
-transform = A.Compose([
-    A.Defocus(radius = 5, alias_blur = 0.2, p = 0.5),
-    A.ElasticTransform(p =  0.5),
-    A.VerticalFlip(p=0.5),
-    A.GridDistortion(p=0.5)
-    ])
+# transform = A.Compose([
+#     A.Defocus(radius = 5, alias_blur = 0.2, p = 0.5),
+#     A.ElasticTransform(p =  0.5),
+#     A.VerticalFlip(p=0.5),
+#     A.GridDistortion(p=0.5)
+#     ])
 
 
 
