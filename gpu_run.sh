@@ -8,6 +8,8 @@
 #SBATCH -N 1
 #SBATCH -c 2
 #SBATCH --mem=100000
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=nasir.wynruit@tufts.edu
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -66,7 +68,8 @@ echo_run_halt() {
 #                                 Paths/Vars                                  #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-PYTHON=python
+PYTHON=/cluster/tufts/hugheslab/nwynru01/condaenv/multiview/bin/python
+# PYTHON=python
 
 PREP=Data_prep.py
 TRAIN=TrainDenseNET.py
