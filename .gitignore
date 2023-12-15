@@ -379,7 +379,6 @@ mono_crash.*
 
 # Data
 data/
-trained_models/
 gen/
 *.npy
 *.batch
