@@ -378,5 +378,8 @@ $RECYCLE.BIN/
 mono_crash.*
 
 # Data
-data
+data/
+trained_models/
+gen/
 *.npy
+*.batch

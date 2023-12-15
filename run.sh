@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                             #
@@ -41,7 +41,7 @@ echo_reset() {
 }
 
 usage_error() {
-    echo_reset "${RED}Usage: ./run.sh (batch | lbatch | clean)"
+    echo_reset "${RED}Usage: ./run.sh (batch | local | clean)"
     echo_reset "${YELLOW}batch: ${BLUE}runs batch job on cluster"
     echo_reset "${YELLOW}local: ${BLUE}runs batch job locally"
     echo_reset "${YELLOW}clean: ${BLUE}cleans up file space"
@@ -97,7 +97,6 @@ case ${module} in
         ;;
     batch)
         echo_reset "${PURPLE}Running Batch Job...\n"
-        ./run.sh clean
         sbatch gpu_run.sh
         ;;
     local)

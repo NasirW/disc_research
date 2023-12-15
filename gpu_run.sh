@@ -2,14 +2,12 @@
 
 #SBATCH --partition preempt
 #SBATCH --job-name=run
-#SBATCH --output=%j.out
-#SBATCH --error=%j.err
+#SBATCH --output=%j_out.batch
+#SBATCH --error=%j_err.batch
 #SBATCH --time=30:00:00
 #SBATCH -N 1
 #SBATCH -c 2
 #SBATCH --mem=100000
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=nasir.wynruit@tufts.edu
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -52,22 +50,31 @@ echo_and_run() {
     eval $1
 }
 
+echo_run_halt() {
+    echo_and_run "${*}"
+
+    exit_code=$?
+
+    if [ ${exit_code} -ne 0 ]; then
+        echo_reset "\n${RED}Failiure with Exit Code {${exit_code}} on:\n${ITALICS}${1}"
+        exit ${exit_code}
+    fi
+}
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                 Paths/Vars                                  #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# todo: check other python versions
-conda init bash
-conda activate /cluster/tufts/hpc/tools/anaconda/202105/envs/pytorch_cuda11.7
-PYTHON=/cluster/tufts/hugheslab/nwynru01/condaenv/multiview/bin/python
-# PYTHON=/cluster/tufts/hugheslab/nwynru01/condaenv/multiview/bin/python
+PYTHON=python
 
+PREP=Data_prep.py
+TRAIN=TrainDenseNET.py
+EVAL=EvaluateCNN.py
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                Input Mapping                                #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-python cuda_check.py
+echo_run_halt "${PYTHON} ${TRAIN}"
