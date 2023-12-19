@@ -31,7 +31,7 @@ from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
 from keras.callbacks import CSVLogger
 import time
-import skimage.transform
+# import skimage.transform
 
 X_ts = np.load("gen/X_ts.npy")
 Y_ts = np.load("gen/Y_ts.npy")
@@ -225,38 +225,28 @@ Y_hat_df = pd.DataFrame(data=Y_hat)
 Y_hat_df["Predicted label"] = Y_hat_df.idxmax(axis=1)
 Y_hat_df["True label"] = Y_ts
 
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc
+import matplotlib.pyplot as plt
 
 y_true2 = Y_hat_df["True label"]
 y_pred2 = Y_hat_df["Predicted label"]
 cm2 = confusion_matrix(y_true2, y_pred2)
 
-disp = ConfusionMatrixDisplay(confusion_matrix=cm2)
-disp.plot()
-plt.show()
-
-accuracy_ts_val2 = (cm2[0, 0] + cm2[1, 1]) / 1266
-accuracy_ci_ts_val2 = 1.96 * np.sqrt(accuracy_ts_val2 * (1 - accuracy_ts_val2) / 1266)
-
-Specificity = cm2[0, 0] / (cm2[0, 0] + cm2[0, 1])
-Sensitivity = cm2[1, 1] / (cm2[1, 0] + cm2[1, 1])
-
-from sklearn.metrics import roc_curve
-
 fpr_keras, tpr_keras, thresholds_keras = roc_curve(y_true2, y_pred2)
-
-from sklearn.metrics import auc
-
 auc_keras = auc(fpr_keras, tpr_keras)
 
-import matplotlib.pyplot as plt
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
 
-plt.figure(1)
-plt.plot([0, 1], [0, 1], "k--")
-plt.plot(fpr_keras, tpr_keras, label="Keras (area = {:.3f})".format(auc_keras))
-# plt.plot(fpr_rf, tpr_rf, label='RF (area = {:.3f})'.format(auc_rf))
-plt.xlabel("False positive rate")
-plt.ylabel("True positive rate")
-plt.title("ROC curve")
-plt.legend(loc="best")
-plt.show()
+disp = ConfusionMatrixDisplay(confusion_matrix=cm2)  # Remove the 'ax=ax1' argument
+disp.plot(ax=ax1)
+ax1.set_title('Confusion Matrix')
+
+ax2.plot([0, 1], [0, 1], "k--")
+ax2.plot(fpr_keras, tpr_keras, label="Keras (area = {:.3f})".format(auc_keras))
+ax2.set_xlabel("False positive rate")
+ax2.set_ylabel("True positive rate")
+ax2.set_title("ROC Curve")
+ax2.legend(loc="best")
+
+plt.savefig("confusion_matrix_roc.png")
+# plt.show()

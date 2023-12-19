@@ -53,6 +53,12 @@ echo_and_run() {
     eval $1
 }
 
+clean() {
+    echo_reset "${PURPLE}Cleaning Up File Space..."
+    echo_and_run "rm *.ans"
+    echo_and_run "rm *.png"
+}
+
 
 
 
@@ -91,11 +97,10 @@ MAIN=src/main.py
 
 case ${module} in
     clean)
-        echo_reset "${PURPLE}Cleaning Up File Space..."
-        echo_and_run "rm *.out"
-        echo_and_run "rm *.err"
+        clean
         ;;
     batch)
+        clean
         echo_reset "${PURPLE}Running Batch Job...\n"
         sbatch gpu_run.sh
         ;;

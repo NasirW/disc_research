@@ -2,8 +2,8 @@
 
 #SBATCH --partition preempt
 #SBATCH --job-name=run
-#SBATCH --output=%j_out.batch
-#SBATCH --error=%j_err.batch
+#SBATCH --output=%j_out.ans
+#SBATCH --error=%j_err.ans
 #SBATCH --time=30:00:00
 #SBATCH -N 1
 #SBATCH -c 2
@@ -80,4 +80,5 @@ EVAL=EvaluateCNN.py
 #                                Input Mapping                                #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-echo_run_halt "${PYTHON} ${TRAIN}"
+# echo_run_halt "conda install -c conda-forge opencv"
+echo_run_halt "${PYTHON} ${EVAL}"
