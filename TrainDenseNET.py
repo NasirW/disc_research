@@ -149,7 +149,7 @@ early_stopping = EarlyStopping(monitor="val_loss", min_delta=0, patience=300)
 batch_size = 32
 epochs = 300
 
-model.fit(
+history = model.fit(
     X_tr,
     Y_tr,
     epochs=epochs,
@@ -159,3 +159,21 @@ model.fit(
     initial_epoch=0,
     callbacks=[checkpoint, csvlog, early_stopping],
 )
+
+
+
+# Plotting the loss curves
+plt.figure(figsize=(12, 6))
+
+# Plotting the training loss
+plt.plot(history.history['loss'], label='Training Loss')
+
+# Plotting the validation loss
+plt.plot(history.history['val_loss'], label='Validation Loss')
+
+plt.title('Training and Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Mean Absolute Error')
+plt.legend()
+plt.savefig('results/Training and validation loss.png')
+plt.show()
