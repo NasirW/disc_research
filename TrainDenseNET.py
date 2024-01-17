@@ -37,6 +37,7 @@ import time
 
 # %%
 # load the training and val data from already split files
+# Change for different dataset
 X_tr = np.load("gen/X_tr.npy")
 Y_tr = np.load("gen/Y_tr.npy")
 
@@ -45,6 +46,15 @@ Y_ts = np.load("gen/Y_ts.npy")
 
 # X_val = np.load('X_val.npy')
 # Y_val = np.load('Y_val.npy')
+
+# Meta dataset
+# X_tr = np.load("gen/X_train.npy")
+# Y_tr = np.load("gen/Y_train.npy")
+
+# X_ts = np.load("gen/X_test.npy")
+# Y_ts = np.load("gen/Y_test.npy")
+
+
 
 from keras.utils import to_categorical
 
