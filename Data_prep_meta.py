@@ -74,7 +74,7 @@ all_info_np = np.array(all_info, dtype=object)
 
 
 # Function to split data while keeping patient data together
-def patient_wise_split(info_np, images_np, labels_np, test_size=0.3, random_state=42):
+def patient_wise_split(info_np, images_np, labels_np, test_size=0.1, random_state=42):
     # Extract unique patient IDs
     unique_patients = np.unique(info_np[:, 0])
     
