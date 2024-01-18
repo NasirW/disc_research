@@ -38,21 +38,21 @@ import time
 # %%
 # load the training and val data from already split files
 # Change for different dataset
-X_tr = np.load("gen/X_tr.npy")
-Y_tr = np.load("gen/Y_tr.npy")
+# X_tr = np.load("gen/X_tr.npy")
+# Y_tr = np.load("gen/Y_tr.npy")
 
-X_ts = np.load("gen/X_ts.npy")
-Y_ts = np.load("gen/Y_ts.npy")
+# X_ts = np.load("gen/X_ts.npy")
+# Y_ts = np.load("gen/Y_ts.npy")
 
 # X_val = np.load('X_val.npy')
 # Y_val = np.load('Y_val.npy')
 
 # Meta dataset
-# X_tr = np.load("gen/X_train.npy")
-# Y_tr = np.load("gen/Y_train.npy")
+X_tr = np.load("../disc_research_images/gen/meta/X_train.npy")
+Y_tr = np.load("../disc_research_images/gen/meta/y_train.npy")
 
-# X_ts = np.load("gen/X_test.npy")
-# Y_ts = np.load("gen/Y_test.npy")
+X_ts = np.load("../disc_research_images/gen/meta/X_test.npy")
+Y_ts = np.load("../disc_research_images/gen/meta/y_test.npy")
 
 
 
@@ -141,7 +141,7 @@ model.compile(
 model.summary()
 
 # %% train the model
-filepath = "DenseNET_train_loss"
+filepath = "DenseNET_train_loss_meta"
 
 # save the model when val_loss improves during training
 checkpoint = ModelCheckpoint(
@@ -156,8 +156,9 @@ checkpoint = ModelCheckpoint(
 csvlog = CSVLogger("./trained_models/" + filepath + "_train_log.csv", append=True)
 # stop training if no improvement has been seen on val_loss for a while
 early_stopping = EarlyStopping(monitor="val_loss", min_delta=0, patience=300)
+#increasing batch_size to 128
 batch_size = 32
-epochs = 300
+epochs = 50
 
 history = model.fit(
     X_tr,
