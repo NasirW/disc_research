@@ -268,27 +268,49 @@ import numpy as np
 import os
 import re
 
+pattern = re.compile(r'Chemo(All_)?(\d+(?:\.\d+)?)_(\d+)_(\d+)\.png')
+
 def load_images_from_folder(folder, label):
     images = []
     labels = []
     info = []  # To store patient and lesion IDs
 
-    for filename in os.listdir(folder):
-        # Extract patient and lesion IDs from the filename
-        match = re.match(r'Chemo(All_)?(\d+)_(\d+)_\d+.jpg', filename)
+    file_names = os.listdir(folder)
+
+    # Get total number of files for progress tracking
+    total_files = len(file_names)
+    print(f"Total files found: {total_files}")
+    #file_count = 0
+
+    for index, filename in enumerate(file_names, start=1):
+        if index % 100 == 0:  # Progress update every 100 images
+            print(f"Processing file {index}/{total_files}")
+
+        # This regex pattern accounts for 'ChemoAll' or 'Chemo' and patient IDs with a period
+        #pattern = re.compile(r'Chemo(All_)?(\d+(?:\.\d+)?)_(\d+)_(\d+)\.png')
+        match = pattern.match(filename)
         if match:
-            patient_id, lesion_id = match.group(2), match.group(3)
+            patient_id, lesion_id, replicate = match.group(2), match.group(3), match.group(4)
+            print(f"Extracted IDs - Patient: {patient_id}, Lesion: {lesion_id}")
+            # Load and preprocess the image, then store the information
             img = cv2.imread(os.path.join(folder, filename))
             if img is not None:
-                # Convert BGR to RGB
                 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                # Normalize pixel values
                 img_normalized = img_rgb.astype('float32') / 255
                 images.append(img_normalized)
                 labels.append(label)
                 info.append((patient_id, lesion_id))
+            else:
+                print(f"Filename does not match pattern: {filename}")
+         # Diagnostic print for info
+        #print(f"Total info entries: {len(info)}")
+        #print(f"Sample info entries: {info[:5]}")  # Print first 5 entries for checking
 
     return images, labels, info
+
+# Paths to your image folders
+resistant_folder = '../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Suspecious Lesions/Resistant'
+sensitive_folder = '../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Suspecious Lesions/Sensitive'
 
 # Load images and labels
 resistant_images, resistant_labels, resistant_info = load_images_from_folder(resistant_folder, 'Resistant')
@@ -301,15 +323,15 @@ all_info = resistant_info + sensitive_info
 
 from sklearn.model_selection import train_test_split
 
-# Function to group images by patient and lesion IDs
 def group_images(images, labels, info):
     grouped_data = {}
     for img, label, (patient_id, lesion_id) in zip(images, labels, info):
         key = (patient_id, lesion_id)
         if key not in grouped_data:
-            grouped_data[key] = {'images': [], 'labels': []}
+            grouped_data[key] = {'images': [], 'labels': [], 'info': []}
         grouped_data[key]['images'].append(img)
         grouped_data[key]['labels'].append(label)
+        grouped_data[key]['info'].append((patient_id, lesion_id))
     return grouped_data
 
 # Group images
@@ -320,6 +342,9 @@ grouped_list = list(grouped_images.values())
 
 # Shuffle the grouped list to randomize data
 np.random.shuffle(grouped_list)
+
+# Check the size of the grouped data
+print(f"Total number of groups: {len(grouped_list)}")
 
 # Splitting the data into training, validation, and test sets
 train_val, test = train_test_split(grouped_list, test_size=0.05, random_state=42)
