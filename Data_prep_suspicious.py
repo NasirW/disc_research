@@ -312,9 +312,9 @@ def load_images_from_folder(folder, label):
 resistant_folder = '../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Suspecious Lesions/Resistant'
 sensitive_folder = '../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Suspecious Lesions/Sensitive'
 
-# Load images and labels
-resistant_images, resistant_labels, resistant_info = load_images_from_folder(resistant_folder, 'Resistant')
-sensitive_images, sensitive_labels, sensitive_info = load_images_from_folder(sensitive_folder, 'Sensitive')
+# Assuming 'Resistant' maps to 0 and 'Sensitive' maps to 1
+resistant_images, resistant_labels, resistant_info = load_images_from_folder(resistant_folder, 0)
+sensitive_images, sensitive_labels, sensitive_info = load_images_from_folder(sensitive_folder, 1)
 
 # Combine datasets
 all_images = np.array(resistant_images + sensitive_images)
@@ -392,7 +392,7 @@ X_val, Y_val = val_images, val_labels
 X_test, Y_test = test_images, test_labels
 
 np.save('../disc_research_images/gen/suspicious/X_train.npy', X_train)
-np.save('../disc_research_images/gen/suspicious/Y_train.np', Y_train)
+np.save('../disc_research_images/gen/suspicious/Y_train.npy', Y_train)
 np.save('../disc_research_images/gen/suspicious/X_val.npy', X_val)
 np.save('../disc_research_images/gen/suspicious/Y_val.npy', Y_val)
 np.save('../disc_research_images/gen/suspicious/X_test.npy', X_test)
