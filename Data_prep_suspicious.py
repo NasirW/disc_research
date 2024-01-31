@@ -291,7 +291,7 @@ def load_images_from_folder(folder, label):
         match = pattern.match(filename)
         if match:
             patient_id, lesion_id, replicate = match.group(2), match.group(3), match.group(4)
-            print(f"Extracted IDs - Patient: {patient_id}, Lesion: {lesion_id}")
+            #print(f"Extracted IDs - Patient: {patient_id}, Lesion: {lesion_id}")
             # Load and preprocess the image, then store the information
             img = cv2.imread(os.path.join(folder, filename))
             if img is not None:
@@ -305,6 +305,14 @@ def load_images_from_folder(folder, label):
          # Diagnostic print for info
         #print(f"Total info entries: {len(info)}")
         #print(f"Sample info entries: {info[:5]}")  # Print first 5 entries for checking
+    # After loading the images and labels...
+    print(f"Number of images: {len(images)}")
+    print(f"Number of labels: {len(labels)}")
+
+    if len(images) != len(labels):
+        print("Mismatch detected! The number of images and labels are not equal.")
+        # Optional: Implement additional debugging steps here to find out which images/labels are causing the mismatch.
+
 
     return images, labels, info
 
@@ -350,6 +358,8 @@ print(f"Total number of groups: {len(grouped_list)}")
 train_val, test = train_test_split(grouped_list, test_size=0.05, random_state=42)
 train, val = train_test_split(train_val, test_size=0.05 / 0.95, random_state=42)
 
+
+
 # Function to combine images and labels from grouped data
 def combine_data(groups):
     combined_images = []
@@ -390,6 +400,18 @@ all_df.to_csv('../disc_research_images/gen/suspicious/patient_lesion_groups.csv'
 X_train, Y_train = train_images, train_labels
 X_val, Y_val = val_images, val_labels
 X_test, Y_test = test_images, test_labels
+
+# Check the cardinality of each set
+print(f"Training set: {len(X_train)} images, {len(Y_train)} labels")
+print(f"Validation set: {len(X_val)} images, {len(Y_val)} labels")
+print(f"Testing set: {len(X_test)} images, {len(Y_test)} labels")
+
+# Assert to confirm that the splits have equal numbers of images and labels
+assert len(X_train) == len(Y_train), "Training set images and labels count mismatch!"
+assert len(X_val) == len(Y_val), "Validation set images and labels count mismatch!"
+assert len(X_test) == len(Y_test), "Testing set images and labels count mismatch!"
+
+
 
 np.save('../disc_research_images/gen/suspicious/X_train.npy', X_train)
 np.save('../disc_research_images/gen/suspicious/Y_train.npy', Y_train)
