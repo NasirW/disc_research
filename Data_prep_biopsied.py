@@ -456,9 +456,9 @@ assert len(X_test) == len(Y_test), "Testing set images and labels count mismatch
 
 
 
-np.save('../disc_research_images/gen/suspicious/X_train.npy', X_train)
-np.save('../disc_research_images/gen/suspicious/y_train.npy', Y_train)
+np.save('../disc_research_images/gen/biopsied/X_train.npy', X_train)
+np.save('../disc_research_images/gen/biopsied/y_train.npy', Y_train)
 #np.save('../disc_research_images/gen/suspicious/X_val.npy', X_val)
 #np.save('../disc_research_images/gen/suspicious/Y_val.npy', Y_val)
-np.save('../disc_research_images/gen/suspicious/X_test.npy', X_test)
-np.save('../disc_research_images/gen/suspicious/y_test.npy', Y_test)
+np.save('../disc_research_images/gen/biopsied/X_test.npy', X_test)
+np.save('../disc_research_images/gen/biopsied/y_test.npy', Y_test)
