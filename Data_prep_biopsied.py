@@ -269,43 +269,6 @@ import os
 import re
 
 
-
-
-# # Define the regex pattern
-# pattern = re.compile(r'^Chemo_(\d+\.\d+)_(\d+)\.png$')
-
-# # Sample filenames for testing
-# test_filenames = ['Chemo_50.5_8.png', 'Chemo_100.4_9.png']
-
-# # Test the pattern and extract information
-# for filename in test_filenames:
-#     match = pattern.match(filename)
-#     if match:
-#         patient_lesion_id, replicate = match.groups()
-#         print(f"Filename: {filename}, Patient & Lesion ID: {patient_lesion_id}, Replicate: {replicate}")
-#     else:
-#         print(f"Filename does not match pattern: {filename}")
-
-
-# # Use a simplified pattern for broad matching
-# pattern = re.compile(r'^Chemo_(\d+(?:\.\d+))_(\d+)_(\d+)\.png$')
-
-# folder = '../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Biopsied Lesions/Resistant'  # Ensure this is correctly pointing to your folder
-# file_names = os.listdir(folder)
-
-# print("Attempting to match filenames in the folder...")
-# matched_files = 0
-# for filename in file_names:
-#     if pattern.match(filename):
-#         print(f"Matched filename: {filename}")
-#         matched_files += 1
-#     else:
-#         print(f"Filename does not match pattern: {filename}")
-
-# print(f"Total matched files: {matched_files}")
-
-
-
 pattern = re.compile(r'^Chemo_(\d+\.\d+)_(\d+)\.png$')
 
 def load_images_from_folder(folder, label):
@@ -371,17 +334,17 @@ from sklearn.model_selection import train_test_split
 
 def group_images(images, labels, info):
     grouped_data = {}
+    for img, label, (patient_lesion_id, replicate) in zip(images, labels, info):
+        # Assuming the format of patient_lesion_id is 'patientID.lesionID'
+        key = patient_lesion_id
 
-    for img, label, info_tuple in zip(images, labels, info):
-        # Adjust unpacking based on your chosen structure
-        patient_id, lesion_id = info_tuple  # Example for two-element structure
-        key = f"{patient_id}_{lesion_id}"  # Create composite key
         if key not in grouped_data:
             grouped_data[key] = {'images': [], 'labels': [], 'info': []}
         grouped_data[key]['images'].append(img)
         grouped_data[key]['labels'].append(label)
-        grouped_data[key]['info'].append((patient_id, lesion_id))
+        grouped_data[key]['info'].append(patient_lesion_id) 
     return grouped_data
+
 
 # Group images
 grouped_images = group_images(all_images, all_labels, all_info)
@@ -398,7 +361,7 @@ print(f"Total number of groups: {len(grouped_list)}")
 # Splitting the data into training, validation, and test sets
 #train_val, test = train_test_split(grouped_list, test_size=0.05, random_state=42)
 #train, val = train_test_split(train_val, test_size=0.05 / 0.95, random_state=42)
-train, test = train_test_split(grouped_list, test_size=0.5, random_state=42)
+train, test = train_test_split(grouped_list, test_size=0.1, random_state=42)
 
 
 # Function to combine images and labels from grouped data
@@ -422,7 +385,8 @@ import pandas as pd
 def create_dataframe(groups, group_name):
     data = []
     for group in groups:
-        for patient_id, lesion_id in group['info']:
+        for patient_lesion_id in group['info']:
+            patient_id, lesion_id = patient_lesion_id.split('.')  # Splitting based on your input
             data.append({'Patient_ID': patient_id, 'Lesion_ID': lesion_id, 'Group': group_name})
     return pd.DataFrame(data)
 
@@ -437,7 +401,7 @@ test_df = create_dataframe(test, 'Testing')
 all_df = pd.concat([train_df, test_df])
 
 # Export to CSV
-all_df.to_csv('../disc_research_images/gen/biopsied/patient_lesion_groups.csv', index=False)
+all_df.to_csv('../disc_research_images/gen/biopsied/9010/patient_lesion_groups.csv', index=False)
 
 # Saving the image datasets and labels in standard format
 X_train, Y_train = train_images, train_labels
@@ -456,9 +420,9 @@ assert len(X_test) == len(Y_test), "Testing set images and labels count mismatch
 
 
 
-np.save('../disc_research_images/gen/biopsied/X_train.npy', X_train)
-np.save('../disc_research_images/gen/biopsied/y_train.npy', Y_train)
+np.save('../disc_research_images/gen/biopsied/9010/X_train.npy', X_train)
+np.save('../disc_research_images/gen/biopsied/9010/y_train.npy', Y_train)
 #np.save('../disc_research_images/gen/suspicious/X_val.npy', X_val)
 #np.save('../disc_research_images/gen/suspicious/Y_val.npy', Y_val)
-np.save('../disc_research_images/gen/biopsied/X_test.npy', X_test)
-np.save('../disc_research_images/gen/biopsied/y_test.npy', Y_test)
+np.save('../disc_research_images/gen/biopsied/9010/X_test.npy', X_test)
+np.save('../disc_research_images/gen/biopsied/9010/y_test.npy', Y_test)
