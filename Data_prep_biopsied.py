@@ -268,7 +268,8 @@ import numpy as np
 import os
 import re
 
-pattern = re.compile(r'Chemo(All_)?(\d+(?:\.\d+)?)_(\d+)_(\d+)\.png')
+
+pattern = re.compile(r'^Chemo_(\d+\.\d+)_(\d+)\.png$')
 
 def load_images_from_folder(folder, label):
     images = []
@@ -290,7 +291,7 @@ def load_images_from_folder(folder, label):
         #pattern = re.compile(r'Chemo(All_)?(\d+(?:\.\d+)?)_(\d+)_(\d+)\.png')
         match = pattern.match(filename)
         if match:
-            patient_id, lesion_id, replicate = match.group(2), match.group(3), match.group(4)
+            patient_lesion_id, replicate = match.groups()
             #print(f"Extracted IDs - Patient: {patient_id}, Lesion: {lesion_id}")
             # Load and preprocess the image, then store the information
             img = cv2.imread(os.path.join(folder, filename))
@@ -299,7 +300,7 @@ def load_images_from_folder(folder, label):
                 img_normalized = img_rgb.astype('float32') / 255
                 images.append(img_normalized)
                 labels.append(label)
-                info.append((patient_id, lesion_id))
+                info.append((patient_lesion_id, replicate))
             else:
                 print(f"Filename does not match pattern: {filename}")
          # Diagnostic print for info
@@ -317,8 +318,8 @@ def load_images_from_folder(folder, label):
     return images, labels, info
 
 # Paths to image folders
-resistant_folder = '../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Suspecious Lesions/Resistant'
-sensitive_folder = '../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Suspecious Lesions/Sensitive'
+resistant_folder = '../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Biopsied Lesions/Resistant'
+sensitive_folder = '../DISC_StudyGrp_DLChemoResistance/Data_Chemotherapy Resistance/Biopsied Lesions/Sensitive'
 
 # Assuming 'Resistant' maps to 0 and 'Sensitive' maps to 1
 resistant_images, resistant_labels, resistant_info = load_images_from_folder(resistant_folder, 0)
@@ -333,14 +334,17 @@ from sklearn.model_selection import train_test_split
 
 def group_images(images, labels, info):
     grouped_data = {}
-    for img, label, (patient_id, lesion_id) in zip(images, labels, info):
-        key = (patient_id, lesion_id)
+    for img, label, (patient_lesion_id, replicate) in zip(images, labels, info):
+        # Assuming the format of patient_lesion_id is 'patientID.lesionID'
+        key = patient_lesion_id
+
         if key not in grouped_data:
             grouped_data[key] = {'images': [], 'labels': [], 'info': []}
         grouped_data[key]['images'].append(img)
         grouped_data[key]['labels'].append(label)
-        grouped_data[key]['info'].append((patient_id, lesion_id))
+        grouped_data[key]['info'].append(patient_lesion_id) 
     return grouped_data
+
 
 # Group images
 grouped_images = group_images(all_images, all_labels, all_info)
@@ -355,9 +359,9 @@ np.random.shuffle(grouped_list)
 print(f"Total number of groups: {len(grouped_list)}")
 
 # Splitting the data into training, validation, and test sets
-train_val, test = train_test_split(grouped_list, test_size=0.05, random_state=42)
-train, val = train_test_split(train_val, test_size=0.05 / 0.95, random_state=42)
-
+#train_val, test = train_test_split(grouped_list, test_size=0.05, random_state=42)
+#train, val = train_test_split(train_val, test_size=0.05 / 0.95, random_state=42)
+train, test = train_test_split(grouped_list, test_size=0.1, random_state=42)
 
 
 # Function to combine images and labels from grouped data
@@ -371,7 +375,7 @@ def combine_data(groups):
 
 # Combine images and labels for each set
 train_images, train_labels = combine_data(train)
-val_images, val_labels = combine_data(val)
+#val_images, val_labels = combine_data(val)
 test_images, test_labels = combine_data(test)
 
 
@@ -381,41 +385,44 @@ import pandas as pd
 def create_dataframe(groups, group_name):
     data = []
     for group in groups:
-        for patient_id, lesion_id in group['info']:
+        for patient_lesion_id in group['info']:
+            patient_id, lesion_id = patient_lesion_id.split('.')  # Splitting based on your input
             data.append({'Patient_ID': patient_id, 'Lesion_ID': lesion_id, 'Group': group_name})
     return pd.DataFrame(data)
 
 # Create DataFrames for each set
 train_df = create_dataframe(train, 'Training')
-val_df = create_dataframe(val, 'Validation')
+#val_df = create_dataframe(val, 'Validation')
 test_df = create_dataframe(test, 'Testing')
 
 # Combine all DataFrames
-all_df = pd.concat([train_df, val_df, test_df])
+#all_df = pd.concat([train_df, val_df, test_df])
+
+all_df = pd.concat([train_df, test_df])
 
 # Export to CSV
-all_df.to_csv('../disc_research_images/gen/suspicious/patient_lesion_groups.csv', index=False)
+all_df.to_csv('../disc_research_images/gen/biopsied/9010/patient_lesion_groups.csv', index=False)
 
 # Saving the image datasets and labels in standard format
 X_train, Y_train = train_images, train_labels
-X_val, Y_val = val_images, val_labels
+#X_val, Y_val = val_images, val_labels
 X_test, Y_test = test_images, test_labels
 
 # Check the cardinality of each set
 print(f"Training set: {len(X_train)} images, {len(Y_train)} labels")
-print(f"Validation set: {len(X_val)} images, {len(Y_val)} labels")
+#print(f"Validation set: {len(X_val)} images, {len(Y_val)} labels")
 print(f"Testing set: {len(X_test)} images, {len(Y_test)} labels")
 
 # Assert to confirm that the splits have equal numbers of images and labels
 assert len(X_train) == len(Y_train), "Training set images and labels count mismatch!"
-assert len(X_val) == len(Y_val), "Validation set images and labels count mismatch!"
+#assert len(X_val) == len(Y_val), "Validation set images and labels count mismatch!"
 assert len(X_test) == len(Y_test), "Testing set images and labels count mismatch!"
 
 
 
-np.save('../disc_research_images/gen/suspicious/X_train.npy', X_train)
-np.save('../disc_research_images/gen/suspicious/Y_train.npy', Y_train)
-np.save('../disc_research_images/gen/suspicious/X_val.npy', X_val)
-np.save('../disc_research_images/gen/suspicious/Y_val.npy', Y_val)
-np.save('../disc_research_images/gen/suspicious/X_test.npy', X_test)
-np.save('../disc_research_images/gen/suspicious/Y_test.npy', Y_test)
+np.save('../disc_research_images/gen/biopsied/9010/X_train.npy', X_train)
+np.save('../disc_research_images/gen/biopsied/9010/y_train.npy', Y_train)
+#np.save('../disc_research_images/gen/suspicious/X_val.npy', X_val)
+#np.save('../disc_research_images/gen/suspicious/Y_val.npy', Y_val)
+np.save('../disc_research_images/gen/biopsied/9010/X_test.npy', X_test)
+np.save('../disc_research_images/gen/biopsied/9010/y_test.npy', Y_test)

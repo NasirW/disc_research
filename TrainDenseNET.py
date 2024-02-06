@@ -48,12 +48,18 @@ import time
 # Y_val = np.load('Y_val.npy')
 
 # Meta dataset
-X_tr = np.load("../disc_research_images/gen/meta/X_train.npy")
-Y_tr = np.load("../disc_research_images/gen/meta/y_train.npy")
+# X_tr = np.load("../disc_research_images/gen/meta/X_train.npy")
+# Y_tr = np.load("../disc_research_images/gen/meta/y_train.npy")
 
-X_ts = np.load("../disc_research_images/gen/meta/X_test.npy")
-Y_ts = np.load("../disc_research_images/gen/meta/y_test.npy")
+# X_ts = np.load("../disc_research_images/gen/meta/X_test.npy")
+# Y_ts = np.load("../disc_research_images/gen/meta/y_test.npy")
 
+#path on the cluster
+X_tr = np.load("gen/meta/X_train.npy")
+Y_tr = np.load("gen/meta/y_train.npy")
+
+X_ts = np.load("gen/meta/X_test.npy")
+Y_ts = np.load("gen/meta/y_test.npy")
 
 
 from keras.utils import to_categorical
@@ -157,8 +163,8 @@ csvlog = CSVLogger("./trained_models/" + filepath + "_train_log.csv", append=Tru
 # stop training if no improvement has been seen on val_loss for a while
 early_stopping = EarlyStopping(monitor="val_loss", min_delta=0, patience=300)
 #increasing batch_size to 128
-batch_size = 32
-epochs = 50
+batch_size = 128
+epochs = 300
 
 history = model.fit(
     X_tr,
