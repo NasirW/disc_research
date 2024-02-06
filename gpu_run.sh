@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 #SBATCH --partition preempt
 #SBATCH --job-name=run
@@ -68,10 +68,11 @@ echo_run_halt() {
 #                                 Paths/Vars                                  #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-PYTHON=/cluster/tufts/hugheslab/nwynru01/condaenv/multiview/bin/python
-# PYTHON=python
+# PYTHON=/cluster/tufts/hugheslab/nwynru01/condaenv/multiview/bin/python
+PYTHON=python3
 
 PREP=Data_prep.py
+SUSP=Data_prep_suspicious.py
 TRAIN=TrainDenseNET.py
 EVAL=EvaluateCNN.py
 
@@ -80,5 +81,4 @@ EVAL=EvaluateCNN.py
 #                                Input Mapping                                #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# echo_run_halt "conda install -c conda-forge opencv"
-echo_run_halt "${PYTHON} ${EVAL}"
+echo_run_halt "${PYTHON} ${SUSP}"
