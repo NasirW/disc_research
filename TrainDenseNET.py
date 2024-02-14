@@ -179,18 +179,26 @@ history = model.fit(
 
 
 
-# Plotting the loss curves
+# Corrected y-axis label
 plt.figure(figsize=(12, 6))
-
-# Plotting the training loss
 plt.plot(history.history['loss'], label='Training Loss')
-
-# Plotting the validation loss
 plt.plot(history.history['val_loss'], label='Validation Loss')
 
 plt.title('Training and Validation Loss')
 plt.xlabel('Epoch')
-plt.ylabel('Mean Absolute Error')
+plt.ylabel('Loss')  # Corrected Label
 plt.legend()
 plt.savefig('results/Training and validation loss.png')
+plt.show()
+
+
+csv_data = pd.read_csv("./trained_models/" + filepath + "_train_log.csv")
+plt.figure(figsize=(12, 6))
+plt.plot(csv_data['epoch'], csv_data['loss'], label='Training Loss from CSV')
+plt.plot(csv_data['epoch'], csv_data['val_loss'], label='Validation Loss from CSV')
+plt.title('Training and Validation Loss (CSV)')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.savefig('results/Training and validation loss(from csvlog).png')
 plt.show()
