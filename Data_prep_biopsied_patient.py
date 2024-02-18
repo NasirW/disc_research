@@ -70,15 +70,16 @@ from sklearn.model_selection import train_test_split
 
 def group_images(images, labels, info):
     grouped_data = {}
-    for img, label, patient_lesion_id in zip(images, labels, info):
+    for img, label, info_tuple in zip(images, labels, info):
+        patient_lesion_id, replicate = info_tuple  # Correctly unpack the tuple
         patient_id = patient_lesion_id.split('.')[0]  # Extract only the patient ID
-        key = patient_id  # Use patient ID as the key for grouping
-
+        key = patient_id
         if key not in grouped_data:
             grouped_data[key] = {'images': [], 'labels': [], 'info': []}
         grouped_data[key]['images'].append(img)
         grouped_data[key]['labels'].append(label)
-        grouped_data[key]['info'].append(patient_lesion_id)  # Store the full patient_lesion_id for potential reference
+        # Optionally store the full patient_lesion_id and replicate for completeness
+        grouped_data[key]['info'].append((patient_lesion_id, replicate))
     return grouped_data
 
 # Group images
@@ -96,7 +97,7 @@ print(f"Total number of groups: {len(grouped_list)}")
 # Splitting the data into training, validation, and test sets
 #train_val, test = train_test_split(grouped_list, test_size=0.05, random_state=42)
 #train, val = train_test_split(train_val, test_size=0.05 / 0.95, random_state=42)
-train, test = train_test_split(grouped_list, test_size=0.4, random_state=42)
+train, test = train_test_split(grouped_list, test_size=0.1, random_state=42)
 
 
 # Function to combine images and labels from grouped data
@@ -118,16 +119,11 @@ import pandas as pd
 def create_dataframe(groups, group_name):
     data = []
     for group in groups:
-        # Assuming multiple lesions per patient could be in 'info'
-        patient_ids = set()  # Use a set to avoid duplicate entries for the same patient
-        for patient_lesion_id in group['info']:
-            patient_id, lesion_id = patient_lesion_id.split('.')
-            patient_ids.add(patient_id)  # Add patient_id to the set
-
-        for patient_id in patient_ids:
-            # Each entry now represents a unique patient in this group
-            data.append({'Patient_ID': patient_id, 'Lesion_ID': 'Multiple', 'Group': group_name})
+        for patient_lesion_id, _ in group['info']:  # Correctly unpack the tuple, ignoring replicate
+            patient_id, lesion_id = patient_lesion_id.split('.')  # Now correctly splitting the string
+            data.append({'Patient_ID': patient_id, 'Lesion_ID': lesion_id, 'Group': group_name})
     return pd.DataFrame(data)
+
 
 # Create DataFrames for each set
 train_df = create_dataframe(train, 'Training')
@@ -140,7 +136,7 @@ test_df = create_dataframe(test, 'Testing')
 all_df = pd.concat([train_df, test_df])
 
 # Export to CSV
-all_df.to_csv('../disc_research_images/gen/biopsied/6040/patient_lesion_groups.csv', index=False)
+all_df.to_csv('../disc_research_images/gen/biopsied/patient/9010/patient_groups.csv', index=False)
 
 # Saving the image datasets and labels in standard format
 X_train, Y_train = train_images, train_labels
@@ -159,10 +155,10 @@ assert len(X_test) == len(Y_test), "Testing set images and labels count mismatch
 
 
 
-np.save('../disc_research_images/gen/biopsied/6040/X_train.npy', X_train)
-np.save('../disc_research_images/gen/biopsied/6040/y_train.npy', Y_train)
+np.save('../disc_research_images/gen/biopsied/patient/9010/X_train.npy', X_train)
+np.save('../disc_research_images/gen/biopsied/patient/9010/y_train.npy', Y_train)
 #np.save('../disc_research_images/gen/suspicious/X_val.npy', X_val)
 #np.save('../disc_research_images/gen/suspicious/Y_val.npy', Y_val)
-np.save('../disc_research_images/gen/biopsied/6040/X_test.npy', X_test)
-np.save('../disc_research_images/gen/biopsied/6040/y_test.npy', Y_test)
+np.save('../disc_research_images/gen/biopsied/patient/9010/X_test.npy', X_test)
+np.save('../disc_research_images/gen/biopsied/patient/9010/y_test.npy', Y_test)
 
