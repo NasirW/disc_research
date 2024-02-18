@@ -115,13 +115,18 @@ test_images, test_labels = combine_data(test)
 
 import pandas as pd
 
-# Function to create a DataFrame from grouped data
 def create_dataframe(groups, group_name):
     data = []
     for group in groups:
+        # Assuming multiple lesions per patient could be in 'info'
+        patient_ids = set()  # Use a set to avoid duplicate entries for the same patient
         for patient_lesion_id in group['info']:
-            patient_id, lesion_id = patient_lesion_id.split('.')  # Splitting based on your input
-            data.append({'Patient_ID': patient_id, 'Lesion_ID': lesion_id, 'Group': group_name})
+            patient_id, lesion_id = patient_lesion_id.split('.')
+            patient_ids.add(patient_id)  # Add patient_id to the set
+
+        for patient_id in patient_ids:
+            # Each entry now represents a unique patient in this group
+            data.append({'Patient_ID': patient_id, 'Lesion_ID': 'Multiple', 'Group': group_name})
     return pd.DataFrame(data)
 
 # Create DataFrames for each set
