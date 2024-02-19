@@ -361,7 +361,7 @@ print(f"Total number of groups: {len(grouped_list)}")
 # Splitting the data into training, validation, and test sets
 #train_val, test = train_test_split(grouped_list, test_size=0.05, random_state=42)
 #train, val = train_test_split(train_val, test_size=0.05 / 0.95, random_state=42)
-train, test = train_test_split(grouped_list, test_size=0.4, random_state=42)
+train, test = train_test_split(grouped_list, test_size=0.5, random_state=42)
 
 
 # Function to combine images and labels from grouped data
@@ -401,7 +401,7 @@ test_df = create_dataframe(test, 'Testing')
 all_df = pd.concat([train_df, test_df])
 
 # Export to CSV
-all_df.to_csv('../disc_research_images/gen/biopsied/6040/patient_lesion_groups.csv', index=False)
+all_df.to_csv('../disc_research_images/gen/biopsied/patient/5050/patient_lesion_groups.csv', index=False)
 
 # Saving the image datasets and labels in standard format
 X_train, Y_train = train_images, train_labels
@@ -420,9 +420,9 @@ assert len(X_test) == len(Y_test), "Testing set images and labels count mismatch
 
 
 
-np.save('../disc_research_images/gen/biopsied/6040/X_train.npy', X_train)
-np.save('../disc_research_images/gen/biopsied/6040/y_train.npy', Y_train)
+np.save('../disc_research_images/gen/biopsied/patient/5050/X_train.npy', X_train)
+np.save('../disc_research_images/gen/biopsied/patient/5050/y_train.npy', Y_train)
 #np.save('../disc_research_images/gen/suspicious/X_val.npy', X_val)
 #np.save('../disc_research_images/gen/suspicious/Y_val.npy', Y_val)
-np.save('../disc_research_images/gen/biopsied/6040/X_test.npy', X_test)
-np.save('../disc_research_images/gen/biopsied/6040/y_test.npy', Y_test)
+np.save('../disc_research_images/gen/biopsied/patient/5050/X_test.npy', X_test)
+np.save('../disc_research_images/gen/biopsied/patient/5050/y_test.npy', Y_test)
