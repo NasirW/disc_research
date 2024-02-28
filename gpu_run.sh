@@ -75,10 +75,11 @@ PREP=Data_prep.py
 SUSP=Data_prep_suspicious.py
 TRAIN=TrainDenseNET.py
 EVAL=EvaluateCNN.py
+TEST=test.py
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                Input Mapping                                #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-echo_run_halt "${PYTHON} ${SUSP}"
+echo_run_halt "${PYTHON} ${TEST}"
