@@ -75,7 +75,7 @@ PREP=Data_prep.py
 SUSP=Data_prep_suspicious.py
 TRAIN=TrainDenseNET.py
 EVAL=EvaluateCNN.py
-TEST=test.py
+TEST=Data_prep_class.py
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
