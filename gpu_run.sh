@@ -75,7 +75,21 @@ PREP=Data_prep.py
 SUSP=Data_prep_suspicious.py
 TRAIN=TrainDenseNET.py
 EVAL=EvaluateCNN.py
-TEST=Data_prep_class.py
+
+MODEL=Model.py
+
+BIOP=chemo_res_biop
+BIOP_NPY=results/${BIOP}/npy
+
+SUSP=chemo_res_susp
+SUSP_NPY=results/${SUSP}/npy
+
+META=metastasis
+META_NPY=results/${META}/npy
+
+model_biop_args="--data_dir ${BIOP_NPY} --name ${BIOP}"
+model_susp_args="--data_dir ${SUSP_NPY} --name ${SUSP}"
+model_meta_args="--data_dir ${META_NPY} --name ${META}"
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

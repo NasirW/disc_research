@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 
 import pickle as pk
 from argparse import ArgumentParser as arg_parser
@@ -23,8 +24,9 @@ class Model:
     BEN = 0
     MAL = 1
 
-    def __init__(self, data_dir, save_dir, verbose):
+    def __init__(self, data_dir, save_dir, verbose, show_plots):
         self.save_dir = save_dir
+        self.show_plots = show_plots
         self.random_state = 42
         self.verbose = verbose
         
@@ -33,7 +35,7 @@ class Model:
 
         for npy_file in tqdm(npy_files, desc="Loading Data"):
             name = Path.get_filename(npy_file)
-            self.data[name] = np.load(npy_file, allow_pickle=True)
+            self.data[name] = np.stack(np.load(npy_file, allow_pickle=True))
             
         self.dense_net = DenseNet(X_tr=self.data["X_train"],
                                   Y_tr=self.data["y_train"],
@@ -41,10 +43,12 @@ class Model:
                                   Y_ts=self.data["y_val"])
 
 
-    def train(self, history_save_path):
+    def train(self, history_save_path, show_plots):
         self.history = self.dense_net.train(history_save_path)
-        self.dense_net.plot_loss(self.history)
-        self.dense_net.plot_loss_from_csv(history_save_path)
+        
+        if show_plots:
+            self.dense_net.plot_loss(self.history)
+            self.dense_net.plot_loss_from_csv(history_save_path)
         
     def predict(self, X=None):
         ...
@@ -122,11 +126,18 @@ if __name__ == '__main__':
     
     parser.add_argument("--data_dir", required=True,
                         help="The directory containing the `.npy` data files", type=str)
+    
+    parser.add_argument("--name", required=True,
+                        help="The name of the dataset", type=str)
+    
+    parser.add_argument("--show_plots", default=False, action="store_true",
+                        help="Whether to show the training plots", type=bool)
 
     args = parser.parse_args()
 
     model = Model(data_dir=args.data_dir,
                   save_dir=path_join(args.data_dir, "model"),
-                  verbose=args.verbose)
+                  verbose=args.verbose,
+                  show_plots=args.show_plots)
     
-    model.train(path_join(args.data_dir, "DenseNET_train_loss_meta"))
+    model.train(path_join("trained_models", f"DenseNET_train_loss_{args.name}"))

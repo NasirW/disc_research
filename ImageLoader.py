@@ -189,11 +189,17 @@ if __name__ == '__main__':
     parser.add_argument("--sen_folder", required=True,
                         help="The folder containing the sensitive images", type=str)
     
+    parser.add_argument("--test_prop", default=0.2,
+                        help="The proportion of the test set", type=float)
+    
+    parser.add_argument("--val_prop", default=0.2,
+                        help="The proportion of the validation set", type=float)
+    
     parser.add_argument("--name", required=True,
                         help="The name of the dataset", type=str)
     
     parser.add_argument("--pickle", default="n",
-                        help="To pickle the images, select from: ['n' -> No pickling, 'ow' -> Pickling with overwrite, 'n-ow' -> Pickling without overwrite]",
+                        help="To pickle the images, select from: ['n' -> No saving, 'ow' -> Saving with Overwrite, 'n-ow' -> Saving without Overwrite]",
                         choices=["n", "ow", "n-ow"])
                         
     args = parser.parse_args()
@@ -202,7 +208,7 @@ if __name__ == '__main__':
                               sensitive_folder=args.sen_folder,
                               name=args.name)
 
-    data_loader.split_data()
+    data_loader.split_data(test_prop=args.test_prop, val_prop=args.val_prop)
     
     if args.pickle != "n":
         data_loader.pickle_imgs(overwrite=args.pickle == "ow")

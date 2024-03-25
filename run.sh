@@ -127,9 +127,9 @@ il_biop_args="--res_folder ${BIOP_RES} --sen_folder ${BIOP_SEN} --name ${BIOP}"
 il_susp_args="--res_folder ${SUSP_SEN} --sen_folder ${SUSP_RES} --name ${SUSP}"
 il_meta_args="--res_folder ${META_BEN} --sen_folder ${META_MAL} --name ${META}"
 
-model_biop_args="--data_dir ${BIOP_NPY}"
-model_susp_args="--data_dir ${SUSP_NPY}"
-model_meta_args="--data_dir ${META_NPY}"
+model_biop_args="--data_dir ${BIOP_NPY} --name ${BIOP}"
+model_susp_args="--data_dir ${SUSP_NPY} --name ${SUSP}"
+model_meta_args="--data_dir ${META_NPY} --name ${META}"
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
