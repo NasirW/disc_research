@@ -41,26 +41,42 @@ echo_reset() {
 }
 
 usage_error() {
-    echo_reset "${RED}Usage: ./run.sh (clean | batch | local | data | biop | susp | meta)"
+    echo_reset "${RED}Usage: ./run.sh (clean | batch | local | data <args> | biop [<args>] | susp [<args>] | meta [<args>] | model <args>)"
     echo_reset "${YELLOW}clean: ${BLUE}cleans up file space"
     echo_reset "${YELLOW}batch: ${BLUE}runs batch job on cluster"
     echo_reset "${YELLOW}local: ${BLUE}runs batch job locally"
-    echo_reset "${YELLOW}data:  ${BLUE}runs data prep module"
-    echo_reset "${YELLOW}biop:  ${BLUE}runs data prep module for biopsy data"
-    echo_reset "${YELLOW}susp:  ${BLUE}runs data prep module for suspicious data"
-    echo_reset "${YELLOW}meta:  ${BLUE}runs data prep module for metastasis data"
+    echo_reset "${YELLOW}data:  ${BLUE}runs data prep module with args"
+    echo_reset "${YELLOW}biop:  ${BLUE}runs data prep module for biopsy data with optional args"
+    echo_reset "${YELLOW}susp:  ${BLUE}runs data prep module for suspicious data with optional args"
+    echo_reset "${YELLOW}meta:  ${BLUE}runs data prep module for metastasis data with optional args"
+    echo_reset "${YELLOW}model: ${BLUE}runs model module with args"
     exit 1
 }
 
-echo_and_run() {
+echo_run() {
     echo_reset "${ITALICS}${CYAN}$1\n" 
     eval $1
 }
 
+echo_run_halt() {
+    echo_run "$1"
+
+    exit_code=$?
+
+    if [ ${exit_code} -ne 0 ]; then
+        echo_reset "\n${RED}Exited with {${exit_code}} on:\n${ITALICS}${1}"
+        exit ${exit_code}
+    fi
+}
+
 clean() {
     echo_reset "${PURPLE}Cleaning Up File Space..."
-    echo_and_run "rm *.ans"
-    echo_and_run "rm *.png"
+    echo_run "rm *.ans"
+    echo_run "rm *.png"
+}
+
+python() {
+    echo_run "${PYTHON} $*"
 }
 
 
@@ -88,25 +104,32 @@ args=${*}
 
 PYTHON=python3.11
 
+IMG_LOAD=ImageLoader.py
+MODEL=Model.py
 
 BIOP=chemo_res_biop
-BIOP_RES=data/chemo_res_biop/Norm_Resistant
-BIOP_SEN=data/chemo_res_biop/Norm_Sensitive
+BIOP_RES=data/${BIOP}/Norm_Resistant
+BIOP_SEN=data/${BIOP}/Norm_Sensitive
+BIOP_NPY=results/${BIOP}/npy
 
 SUSP=chemo_res_susp
-SUSP_RES=data/chemo_res_susp/Norm_Resistant
-SUSP_SEN=data/chemo_res_susp/Norm_Sensitive
+SUSP_RES=data/${SUSP}/Norm_Resistant
+SUSP_SEN=data/${SUSP}/Norm_Sensitive
+SUSP_NPY=results/${SUSP}/npy
 
 META=metastasis
-META_MAL=data/metastasis/Classification/Metastasis
-META_BEN=data/metastasis/Classification/Benign
+META_MAL=data/${META}/Classification/Metastasis
+META_BEN=data/${META}/Classification/Benign
+META_NPY=results/${META}/npy
 
-DATA_PREP=Data_prep_class.py
 
-dp_biop_args="--res_folder ${BIOP_RES} --sen_folder ${BIOP_SEN} --name ${BIOP}"
-dp_susp_args="--res_folder ${SUSP_SEN} --sen_folder ${SUSP_RES} --name ${SUSP}"
-dp_meta_args="--res_folder ${META_BEN} --sen_folder ${META_MAL} --name ${META}"
+il_biop_args="--res_folder ${BIOP_RES} --sen_folder ${BIOP_SEN} --name ${BIOP}"
+il_susp_args="--res_folder ${SUSP_SEN} --sen_folder ${SUSP_RES} --name ${SUSP}"
+il_meta_args="--res_folder ${META_BEN} --sen_folder ${META_MAL} --name ${META}"
 
+model_biop_args="--data_dir ${BIOP_NPY}"
+model_susp_args="--data_dir ${SUSP_NPY}"
+model_meta_args="--data_dir ${META_NPY}"
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -128,19 +151,35 @@ case ${module} in
         ;;
     data)
         echo_reset "${PURPLE}Running Data Prep Module...\n"
-        echo_and_run "${PYTHON} ${DATA_PREP} ${args}"
+        python "${IMG_LOAD} ${args}"
         ;;
     biop)
         echo_reset "${PURPLE}Running Data Prep Module for Biopsy Data...\n"
-        echo_and_run "${PYTHON} ${DATA_PREP} ${dp_biop_args} ${args}"
+        python "${IMG_LOAD} ${il_biop_args} ${args}"
         ;;
     susp)
-        echo_reset "${PURPLE}Running Data Prep Module for Suspended Data...\n"
-        echo_and_run "${PYTHON} ${DATA_PREP} ${dp_susp_args} ${args}"
+        echo_reset "${PURPLE}Running Data Prep Module for Suspicious Data...\n"
+        python "${IMG_LOAD} ${il_susp_args} ${args}"
         ;;
     meta)
         echo_reset "${PURPLE}Running Data Prep Module for Metastasis Data...\n"
-        echo_and_run "${PYTHON} ${DATA_PREP} ${dp_meta_args} ${args}"
+        python "${IMG_LOAD} ${il_meta_args} ${args}"
+        ;;
+    model)
+        echo_reset "${PURPLE}Running Model Module...\n"
+        python "${MODEL} ${args}"
+        ;;
+    modelb)
+        echo_reset "${PURPLE}Running Model Module for Biopsy Data...\n"
+        python "${MODEL} ${model_biop_args} ${args}"
+        ;;
+    models)
+        echo_reset "${PURPLE}Running Model Module for Suspicious Data...\n"
+        python "${MODEL} ${model_susp_args} ${args}"
+        ;;
+    modelm)
+        echo_reset "${PURPLE}Running Model Module for Metastasis Data...\n"
+        python "${MODEL} ${model_meta_args} ${args}"
         ;;
     *)
         usage_error

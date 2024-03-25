@@ -52,6 +52,9 @@ class Path:
     def replace_ext(file_name, new_ext):
         return os.path.splitext(file_name)[0] + new_ext
 
+    def get_filename(file_path):
+        return os.path.splitext(os.path.basename(file_path))[0]
+    
     def add_folder_to_path(old_path, new_folder, index):
         folders = old_path.split(os.path.sep)
         folders.insert(index, new_folder)
@@ -59,7 +62,7 @@ class Path:
 
 
 class ImageLoader:
-    def __init__(self, resistant_folder, sensitive_folder, name):
+    def __init__(self , resistant_folder, sensitive_folder, name):
         self.data = None
         self.name = name
         
@@ -164,7 +167,7 @@ class ImageLoader:
                self.test_images,  self.test_labels
         
     def save_splits(self, save_dir):
-        save_dir = path_join(save_dir, self.name)
+        save_dir = path_join(save_dir, self.name, "npy")
         os.makedirs(save_dir, exist_ok=True)
         
         np.save(os.path.join(save_dir, 'X_train.npy'), self.train_images)
@@ -180,13 +183,13 @@ class ImageLoader:
 if __name__ == '__main__':
     parser = arg_parser()
 
-    parser.add_argument("--res_folder", default=path_join("data", "chemo_res_biop", "Norm_Resistant"),
+    parser.add_argument("--res_folder", required=True,
                         help="The folder containing the resistant images", type=str)
     
-    parser.add_argument("--sen_folder", default=path_join("data", "chemo_res_biop", "Norm_Sensitive"),
+    parser.add_argument("--sen_folder", required=True,
                         help="The folder containing the sensitive images", type=str)
     
-    parser.add_argument("--name", default="chemo_res_biop",
+    parser.add_argument("--name", required=True,
                         help="The name of the dataset", type=str)
     
     parser.add_argument("--pickle", default="n",
