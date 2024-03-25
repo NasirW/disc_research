@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import os
+from os.path import join as path_join
 import re
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -8,6 +9,8 @@ from glob import glob
 from PIL import Image
 import pickle
 from tqdm import tqdm
+from argparse import ArgumentParser as arg_parser
+from colorama import Fore as F
 
 
 class Path:
@@ -24,20 +27,20 @@ class Path:
                     filename).split('_')
                 patient_num, lesion_num = patient_lesion.split('.')
                 capture_num, _ = capture.split('.')
-                return patient_num, lesion_num, capture_num
+                return int(patient_num), lesion_num, int(capture_num)
 
             case "chemo_all":
                 _, patient_num, lesion_num, capture = os.path.basename(
                     filename).split('_')
                 capture_num, _ = capture.split('.')
-                return patient_num, lesion_num, capture_num
+                return int(patient_num), lesion_num, int(capture_num)
 
             case "patch":
                 _, _, patient_lesion, capture = os.path.basename(
                     filename).split('_')
                 patient_num, lesion_num = patient_lesion.split('.')
                 capture_num, _ = capture.split('.')
-                return patient_num, lesion_num, capture_num
+                return int(patient_num), lesion_num, int(capture_num)
 
     def split_filename(filename):
         if "ChemoAll" in filename:
@@ -56,7 +59,10 @@ class Path:
 
 
 class ImageLoader:
-    def __init__(self, resistant_folder, sensitive_folder):
+    def __init__(self, resistant_folder, sensitive_folder, name):
+        self.data = None
+        self.name = name
+        
         self.dataset = {Path.RES: {Path.FILES: glob(os.path.join(resistant_folder, '*')),
                                    Path.DATA:  None,
                                    Path.DIR:   resistant_folder},
@@ -64,8 +70,10 @@ class ImageLoader:
                                    Path.DATA:  None,
                                    Path.DIR:   sensitive_folder}}
         
+        self.setup_dataset()
         
-
+        
+    @staticmethod
     def _img_to_arr(file_name, new_csv_size=(80, 80, 3)):
         ext = os.path.splitext(file_name)[1]
 
@@ -81,7 +89,22 @@ class ImageLoader:
                     return np.stack(pickle.load(f))
             case _:
                 raise ValueError(f"Unsupported file extension: {ext}")
+            
+    def pickle_imgs(self, overwrite=False):
+        for subset in self.dataset.values():
+            for filename in tqdm(subset[Path.FILES]):
+                img = ImageLoader._img_to_arr(filename)
+                
+                pkl_path = Path.add_folder_to_path(Path.replace_ext(filename, '.pkl'), Path.PKL, 1)
+                
+                if not overwrite and os.path.exists(pkl_path):
+                    continue
 
+                os.makedirs(os.path.dirname(pkl_path), exist_ok=True)
+                
+                with open(pkl_path, 'wb') as f:
+                    pickle.dump(img, f)
+                    
     def setup_dataset(self, pickled=True):
         for type, subset in self.dataset.items():
             patients = []
@@ -106,81 +129,79 @@ class ImageLoader:
 
             labels = [1 if type in [Path.RES, Path.MAL] else 0] * len(images)
 
-            subset[Path.DATA] = pd.DataFrame({'Patient Number': patients,
-                                              'Capture Number': captures,
-                                              'Lesion Number': lesions,
-                                              'Image': images,
-                                              'Label': labels})
+            multi_index = pd.MultiIndex.from_arrays([patients, lesions, captures],
+                                                    names=('Patient Number', 'Lesion Number', 'Capture Number'))
+            subset[Path.DATA] = pd.DataFrame({'Image': images, 'Label': labels}, index=multi_index)
+            subset[Path.DATA].sort_index(inplace=True)
+            
+        self.data = pd.concat([self.dataset[Path.RES][Path.DATA], self.dataset[Path.SEN][Path.DATA]])
 
-    def prepare_data(self):
-        resistant_images = np.stack(
-            self.dataset[Path.RES][Path.DATA]['Image'].to_numpy())
-        sensitive_images = np.stack(
-            self.dataset[Path.SEN][Path.DATA]['Image'].to_numpy())
-        resistant_labels = np.stack(
-            self.dataset[Path.RES][Path.DATA]['Label'].to_numpy())
-        sensitive_labels = np.stack(
-            self.dataset[Path.SEN][Path.DATA]['Label'].to_numpy())
+    def split_data(self, test_prop=0.2, val_prop=0.15, random_state=42):
+        X = self.data['Image']
+        y = self.data['Label']
+        
+        assert len(X) == len(y), "Length of images and labels do not match"
+        
+        val_size  = int(len(X) * val_prop)
+        test_size = int(len(X) * test_prop)
+        
+        X_train_val, X_test, y_train_val, y_test = \
+            train_test_split(X, y, test_size=test_size, random_state=random_state)
+            
+        X_train, X_val, y_train, y_val = \
+            train_test_split(X_train_val, y_train_val, test_size=val_size, random_state=random_state)
+            
 
-        self.images = np.concatenate((resistant_images, sensitive_images))
-        self.labels = np.concatenate((resistant_labels, sensitive_labels))
-        self.info   = list(zip(self.dataset[Path.RES][Path.DATA]['Patient Number'].to_numpy(),
-                               self.dataset[Path.RES][Path.DATA]['Capture Number'].to_numpy()))
+        self.train_images = X_train.to_numpy()
+        self.train_labels = y_train.to_numpy()
+        self.val_images   = X_val.to_numpy()
+        self.val_labels   = y_val.to_numpy()
+        self.test_images  = X_test.to_numpy()
+        self.test_labels  = y_test.to_numpy()
+        
+        return self.train_images, self.train_labels, \
+               self.val_images,   self.val_labels, \
+               self.test_images,  self.test_labels
+        
+    def save_splits(self, save_dir):
+        save_dir = path_join(save_dir, self.name)
+        os.makedirs(save_dir, exist_ok=True)
+        
+        np.save(os.path.join(save_dir, 'X_train.npy'), self.train_images)
+        np.save(os.path.join(save_dir, 'y_train.npy'), self.train_labels)
+        np.save(os.path.join(save_dir, 'X_val.npy'),   self.val_images)
+        np.save(os.path.join(save_dir, 'y_val.npy'),   self.val_labels)
+        np.save(os.path.join(save_dir, 'X_test.npy'),  self.test_images)
+        np.save(os.path.join(save_dir, 'y_test.npy'),  self.test_labels)
+        
+        print(F.GREEN + f"\nSaved `{self.name}` Data to: {save_dir}" + F.RESET, end='\n\n')
+        
 
+if __name__ == '__main__':
+    parser = arg_parser()
 
-    def split_data(self, test_size=0.1, random_state=42):
-        self.prepare_data()
-        grouped_list = self.group_images(self.images, self.labels, self.info)
-        grouped_list = list(grouped_list.values())
-        np.random.shuffle(grouped_list)
-        train, test = train_test_split(
-            grouped_list, test_size=test_size, random_state=random_state)
-        self.train_images, self.train_labels = self.combine_data(train)
-        self.test_images, self.test_labels = self.combine_data(test)
+    parser.add_argument("--res_folder", default=path_join("data", "chemo_res_biop", "Norm_Resistant"),
+                        help="The folder containing the resistant images", type=str)
+    
+    parser.add_argument("--sen_folder", default=path_join("data", "chemo_res_biop", "Norm_Sensitive"),
+                        help="The folder containing the sensitive images", type=str)
+    
+    parser.add_argument("--name", default="chemo_res_biop",
+                        help="The name of the dataset", type=str)
+    
+    parser.add_argument("--pickle", default="n",
+                        help="To pickle the images, select from: ['n' -> No pickling, 'ow' -> Pickling with overwrite, 'n-ow' -> Pickling without overwrite]",
+                        choices=["n", "ow", "n-ow"])
+                        
+    args = parser.parse_args()
+    
+    data_loader = ImageLoader(resistant_folder=args.res_folder, 
+                              sensitive_folder=args.sen_folder,
+                              name=args.name)
 
-    def group_images(self, images, labels, info):
-        grouped_data = {}
-        for img, label, info_tuple in zip(images, labels, info):
-            patient_lesion_id, replicate = info_tuple
-            key = patient_lesion_id.split('.')[0]
-            if key not in grouped_data:
-                grouped_data[key] = {'images': [], 'labels': [], 'info': []}
-            grouped_data[key]['images'].append(img)
-            grouped_data[key]['labels'].append(label)
-            grouped_data[key]['info'].append((patient_lesion_id, replicate))
-        return grouped_data
-
-    def combine_data(self, groups):
-        combined_images = []
-        combined_labels = []
-        for group in groups:
-            combined_images.extend(group['images'])
-            combined_labels.extend(group['labels'])
-        return np.array(combined_images), np.array(combined_labels)
-
-    def create_dataframe(self, groups, group_name):
-        data = []
-        for group in groups:
-            for patient_lesion_id, _ in group['info']:
-                patient_id, lesion_id = patient_lesion_id.split('.')
-                data.append({'Patient_ID': patient_id,
-                            'Lesion_ID': lesion_id, 'Group': group_name})
-        return pd.DataFrame(data)
-
-    def save_data_as_npy(self, save_path):
-        os.makedirs(save_path, exist_ok=True)
-        np.save(os.path.join(save_path, 'class_X_train.npy'), self.train_images)
-        np.save(os.path.join(save_path, 'class_y_train.npy'), self.train_labels)
-        np.save(os.path.join(save_path, 'class_X_test.npy'),  self.test_images)
-        np.save(os.path.join(save_path, 'class_y_test.npy'),  self.test_labels)
-        print(f"Saved data to {save_path}")
-
-
-resistant_folder = 'data/chemo_res_biop/Norm_Resistant'
-sensitive_folder = 'data/chemo_res_biop/Norm_Sensitive'
-data_loader = ImageLoader(resistant_folder, sensitive_folder)
-
-data_loader.setup_dataset()
-data_loader.prepare_data()
-data_loader.split_data()
-data_loader.save_data_as_npy('results/chemo_res_biop')
+    data_loader.split_data()
+    
+    if args.pickle != "n":
+        data_loader.pickle_imgs(overwrite=args.pickle == "ow")
+        
+    data_loader.save_splits(save_dir="results")

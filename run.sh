@@ -41,10 +41,14 @@ echo_reset() {
 }
 
 usage_error() {
-    echo_reset "${RED}Usage: ./run.sh (batch | local | clean)"
+    echo_reset "${RED}Usage: ./run.sh (clean | batch | local | data | biop | susp | meta)"
+    echo_reset "${YELLOW}clean: ${BLUE}cleans up file space"
     echo_reset "${YELLOW}batch: ${BLUE}runs batch job on cluster"
     echo_reset "${YELLOW}local: ${BLUE}runs batch job locally"
-    echo_reset "${YELLOW}clean: ${BLUE}cleans up file space"
+    echo_reset "${YELLOW}data:  ${BLUE}runs data prep module"
+    echo_reset "${YELLOW}biop:  ${BLUE}runs data prep module for biopsy data"
+    echo_reset "${YELLOW}susp:  ${BLUE}runs data prep module for suspicious data"
+    echo_reset "${YELLOW}meta:  ${BLUE}runs data prep module for metastasis data"
     exit 1
 }
 
@@ -84,11 +88,25 @@ args=${*}
 
 PYTHON=python3.11
 
-HANDLE_DATA=encoders/handle_data.py
-ENCODE_DATA=encoders/encode_data.py
-DATA_MODE=padchest
-DATA_DIR=data/padchest
-MAIN=src/main.py
+
+BIOP=chemo_res_biop
+BIOP_RES=data/chemo_res_biop/Norm_Resistant
+BIOP_SEN=data/chemo_res_biop/Norm_Sensitive
+
+SUSP=chemo_res_susp
+SUSP_RES=data/chemo_res_susp/Norm_Resistant
+SUSP_SEN=data/chemo_res_susp/Norm_Sensitive
+
+META=metastasis
+META_MAL=data/metastasis/Classification/Metastasis
+META_BEN=data/metastasis/Classification/Benign
+
+DATA_PREP=Data_prep_class.py
+
+dp_biop_args="--res_folder ${BIOP_RES} --sen_folder ${BIOP_SEN} --name ${BIOP}"
+dp_susp_args="--res_folder ${SUSP_SEN} --sen_folder ${SUSP_RES} --name ${SUSP}"
+dp_meta_args="--res_folder ${META_BEN} --sen_folder ${META_MAL} --name ${META}"
+
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -107,6 +125,22 @@ case ${module} in
     local)
         echo_reset "${PURPLE}Running Batch Job Locally...\n"
         ./gpu_run.sh
+        ;;
+    data)
+        echo_reset "${PURPLE}Running Data Prep Module...\n"
+        echo_and_run "${PYTHON} ${DATA_PREP} ${args}"
+        ;;
+    biop)
+        echo_reset "${PURPLE}Running Data Prep Module for Biopsy Data...\n"
+        echo_and_run "${PYTHON} ${DATA_PREP} ${dp_biop_args} ${args}"
+        ;;
+    susp)
+        echo_reset "${PURPLE}Running Data Prep Module for Suspended Data...\n"
+        echo_and_run "${PYTHON} ${DATA_PREP} ${dp_susp_args} ${args}"
+        ;;
+    meta)
+        echo_reset "${PURPLE}Running Data Prep Module for Metastasis Data...\n"
+        echo_and_run "${PYTHON} ${DATA_PREP} ${dp_meta_args} ${args}"
         ;;
     *)
         usage_error
